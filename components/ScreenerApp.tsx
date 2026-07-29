@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { ScreenerResponse, ScreenerRow } from "@/lib/types";
 import { filterSortRows, type TabKey } from "@/lib/screener";
 import { clsx, fmtAge, fmtInt, fmtPct, fmtPrice, fmtUsd, shortAddr } from "@/lib/format";
 import { ARC } from "@/lib/config";
 import { Spark } from "@/components/Spark";
+import { TokenAvatar } from "@/components/TokenAvatar";
 
 const TABS: { id: TabKey; label: string }[] = [
   { id: "trending", label: "Trending" },
@@ -22,6 +24,7 @@ const TFS = [
 ];
 
 export function ScreenerApp() {
+  const router = useRouter();
   const [data, setData] = useState<ScreenerResponse | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -59,6 +62,10 @@ export function ScreenerApp() {
 
   const stats = data?.stats;
 
+  function openPool(pool: string) {
+    router.push(`/pools/${pool}`);
+  }
+
   return (
     <div className="space-y-5">
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
@@ -76,7 +83,7 @@ export function ScreenerApp() {
             setLoading(true);
             load();
           }}
-          className="rounded-lg border border-arc-line bg-arc-panel px-3 py-2 text-sm text-arc-muted hover:text-arc-text"
+          className="rounded-lg border border-arc-line bg-arc-panel px-3 py-2 text-sm text-arc-muted transition hover:text-arc-text"
         >
           Refresh
         </button>
@@ -104,8 +111,10 @@ export function ScreenerApp() {
               key={t.id}
               onClick={() => setTab(t.id)}
               className={clsx(
-                "rounded-lg px-3 py-1.5 text-sm",
-                tab === t.id ? "bg-arc-lime text-black font-semibold" : "text-arc-muted hover:bg-white/5 hover:text-arc-text",
+                "rounded-lg px-3 py-1.5 text-sm transition",
+                tab === t.id
+                  ? "bg-arc-lime text-black font-semibold"
+                  : "text-arc-muted hover:bg-white/5 hover:text-arc-text",
               )}
             >
               {t.label}
@@ -118,7 +127,7 @@ export function ScreenerApp() {
               key={t.id}
               onClick={() => setTf(t.id)}
               className={clsx(
-                "rounded-lg px-2.5 py-1 font-mono text-xs",
+                "rounded-lg px-2.5 py-1 font-mono text-xs transition",
                 tf === t.id ? "bg-white/10 text-arc-cyan" : "text-arc-muted hover:bg-white/5",
               )}
             >
@@ -167,7 +176,7 @@ export function ScreenerApp() {
 
       <div className="table-wrap rounded-xl border border-arc-line bg-arc-panel/70 shadow-glow">
         <table className="min-w-[1100px] w-full text-sm">
-          <thead className="sticky top-0 bg-arc-panel text-[11px] uppercase tracking-wide text-arc-muted">
+          <thead className="sticky top-0 z-10 bg-arc-panel/95 backdrop-blur text-[11px] uppercase tracking-wide text-arc-muted">
             <tr className="border-b border-arc-line">
               {[
                 "Token",
@@ -198,20 +207,33 @@ export function ScreenerApp() {
               const href = `${ARC.explorer}/address/${r.pool}`;
               const tokenHref = `${ARC.explorer}/token/${r.base.address}`;
               return (
-                <tr key={r.pool + r.base.address} className="border-b border-arc-line/70 hover:bg-white/[0.03]">
+                <tr
+                  key={r.pool + r.base.address}
+                  role="link"
+                  tabIndex={0}
+                  onClick={() => openPool(r.pool)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      openPool(r.pool);
+                    }
+                  }}
+                  className="group cursor-pointer border-b border-arc-line/70 transition-colors duration-150 hover:bg-arc-lime/[0.06] focus-visible:bg-arc-lime/[0.08] focus-visible:outline-none"
+                >
                   <td className="px-3 py-3">
                     <div className="flex items-center gap-3">
-                      <a
-                        href={`/pools/${r.pool}`}
-                        className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-arc-lime/30 to-arc-cyan/20 text-xs font-bold text-arc-text"
-                      >
-                        {(r.base.symbol || "?").slice(0, 1)}
-                      </a>
-                      <div>
+                      <TokenAvatar
+                        address={r.base.address}
+                        symbol={r.base.symbol}
+                        logoUrl={r.base.logoUrl}
+                        size={36}
+                        className="transition group-hover:scale-105"
+                      />
+                      <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <a className="font-semibold hover:text-arc-lime" href={`/pools/${r.pool}`}>
+                          <span className="font-semibold group-hover:text-arc-lime transition-colors">
                             {r.base.symbol}
-                          </a>
+                          </span>
                           <span className="text-arc-muted">/{r.quote.symbol || "USDC"}</span>
                           <a
                             className="text-[10px] text-arc-muted hover:text-arc-cyan"
@@ -219,23 +241,22 @@ export function ScreenerApp() {
                             target="_blank"
                             rel="noreferrer"
                             title="Explorer token"
+                            onClick={(e) => e.stopPropagation()}
                           >
                             ↗
                           </a>
                         </div>
-                        <div className="text-xs text-arc-muted">
-                          {r.base.name || "—"} ·{" "}
-                          <a className="hover:text-arc-cyan" href={`/pools/${r.pool}`}>
-                            {shortAddr(r.pool)}
-                          </a>
+                        <div className="truncate text-xs text-arc-muted">
+                          {r.base.name || "—"} · {shortAddr(r.pool)}
                           <a
                             className="ml-2 hover:text-arc-cyan"
                             href={href}
                             target="_blank"
                             rel="noreferrer"
                             title="Explorer pool"
+                            onClick={(e) => e.stopPropagation()}
                           >
-                            · exp
+                            exp
                           </a>
                         </div>
                       </div>
@@ -267,7 +288,9 @@ export function ScreenerApp() {
                       <span className="ml-1 text-arc-up">+{fmtInt(r.holdersDelta24h)}</span>
                     ) : null}
                   </td>
-                  <td className="px-3 py-3 font-mono">{r.top10Pct != null ? `${r.top10Pct.toFixed(1)}%` : "—"}</td>
+                  <td className="px-3 py-3 font-mono">
+                    {r.top10Pct != null ? `${r.top10Pct.toFixed(1)}%` : "—"}
+                  </td>
                   <td className="px-3 py-3 font-mono text-arc-muted">{fmtAge(r.createdTs)}</td>
                   <td className="px-3 py-3">
                     <Spark values={r.spark?.slice(-24)} />
@@ -291,7 +314,7 @@ export function ScreenerApp() {
         {" · "}
         showing <span className="font-mono">{rows.length}</span> / {fmtInt(data?.rows?.length || 0)} pairs
         {" · "}
-        factories {ARC.factories.map(shortAddr).join(", ")}
+        click any row to open pool
       </div>
     </div>
   );

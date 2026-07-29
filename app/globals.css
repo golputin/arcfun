@@ -34,3 +34,8 @@ body {
   width: 72px;
   height: 28px;
 }
+
+/* smooth row interactions */
+tr.group {
+  transition: background-color 150ms ease, transform 150ms ease;
+}

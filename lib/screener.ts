@@ -60,6 +60,34 @@ export async function loadScreener(): Promise<ScreenerResponse> {
     source = `source_error:${e instanceof Error ? e.message : "unknown"}`;
   }
 
+  // Merge logos from /tokens index when screener rows lack logoUrl
+  try {
+    const tokensUrl = (ARC.screenerSource || "").replace(/\/screener$/i, "/tokens");
+    const tRes = await fetch(tokensUrl || "https://cirquedex.xyz/api/indexer/tokens", {
+      headers: { accept: "application/json", "user-agent": "arcfun-screener/0.1" },
+      next: { revalidate: 60 },
+    });
+    if (tRes.ok) {
+      const tData = await tRes.json();
+      const list = Array.isArray(tData?.tokens) ? tData.tokens : [];
+      const logoMap = new Map<string, string>();
+      for (const t of list) {
+        const addr = String(t.address || "").toLowerCase();
+        if (addr && t.logoUrl) logoMap.set(addr, t.logoUrl);
+      }
+      if (logoMap.size) {
+        rows = rows.map((r) => {
+          const addr = String(r.base?.address || "").toLowerCase();
+          const logo = r.base?.logoUrl || logoMap.get(addr) || null;
+          if (logo === r.base?.logoUrl) return r;
+          return { ...r, base: { ...r.base, logoUrl: logo } };
+        });
+      }
+    }
+  } catch {
+    /* ignore logo enrich errors */
+  }
+
   // Enrich / fallback: Blockscout token universe count (not full pair OHLC)
   if (!rows.length) {
     try {

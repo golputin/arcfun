@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ARC } from "@/lib/config";
 import { clsx, fmtInt, fmtPct, fmtPrice, fmtUsd, shortAddr } from "@/lib/format";
 import { Spark } from "@/components/Spark";
+import { TokenAvatar } from "@/components/TokenAvatar";
 
 type Trade = {
   ts: number;
@@ -100,14 +101,22 @@ export function PoolDetail({ address }: { address: string }) {
           <Link href="/" className="text-sm text-arc-cyan hover:underline">
             ← Screener
           </Link>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight md:text-3xl">
-            {title}
-            {pool?.feeBps != null && (
-              <span className="ml-2 text-base font-normal text-arc-muted">
-                {(pool.feeBps / 100).toFixed(2)}%
-              </span>
-            )}
-          </h1>
+          <div className="mt-2 flex items-center gap-3">
+            <TokenAvatar
+              address={base?.address}
+              symbol={base?.symbol}
+              logoUrl={base?.logoUrl}
+              size={48}
+            />
+            <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
+              {title}
+              {pool?.feeBps != null && (
+                <span className="ml-2 text-base font-normal text-arc-muted">
+                  {(pool.feeBps / 100).toFixed(2)}%
+                </span>
+              )}
+            </h1>
+          </div>
           <p className="mt-1 text-sm text-arc-muted">
             {base?.name || "Token"} · pool{" "}
             <a
