@@ -24,6 +24,8 @@ Configured in [`lib/config.ts`](./lib/config.ts).
 - Live RPC block number via your Arc endpoint
 - `/api/screener` JSON API
 - `/api/health` RPC health
+- **Pool detail** `/pools/[address]` (Cirque-style token page)
+- `/api/pools/[address]` pool+trades+holders JSON
 
 ## Data source
 

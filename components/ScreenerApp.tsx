@@ -201,20 +201,41 @@ export function ScreenerApp() {
                 <tr key={r.pool + r.base.address} className="border-b border-arc-line/70 hover:bg-white/[0.03]">
                   <td className="px-3 py-3">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-arc-lime/30 to-arc-cyan/20 text-xs font-bold text-arc-text">
+                      <a
+                        href={`/pools/${r.pool}`}
+                        className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-arc-lime/30 to-arc-cyan/20 text-xs font-bold text-arc-text"
+                      >
                         {(r.base.symbol || "?").slice(0, 1)}
-                      </div>
+                      </a>
                       <div>
                         <div className="flex items-center gap-2">
-                          <a className="font-semibold hover:text-arc-lime" href={tokenHref} target="_blank" rel="noreferrer">
+                          <a className="font-semibold hover:text-arc-lime" href={`/pools/${r.pool}`}>
                             {r.base.symbol}
                           </a>
                           <span className="text-arc-muted">/{r.quote.symbol || "USDC"}</span>
+                          <a
+                            className="text-[10px] text-arc-muted hover:text-arc-cyan"
+                            href={tokenHref}
+                            target="_blank"
+                            rel="noreferrer"
+                            title="Explorer token"
+                          >
+                            ↗
+                          </a>
                         </div>
                         <div className="text-xs text-arc-muted">
                           {r.base.name || "—"} ·{" "}
-                          <a className="hover:text-arc-cyan" href={href} target="_blank" rel="noreferrer">
+                          <a className="hover:text-arc-cyan" href={`/pools/${r.pool}`}>
                             {shortAddr(r.pool)}
+                          </a>
+                          <a
+                            className="ml-2 hover:text-arc-cyan"
+                            href={href}
+                            target="_blank"
+                            rel="noreferrer"
+                            title="Explorer pool"
+                          >
+                            · exp
                           </a>
                         </div>
                       </div>
