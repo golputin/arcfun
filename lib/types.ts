@@ -15,6 +15,8 @@ export type WindowStats = {
   traders: number;
 };
 
+export type MarketStatus = "graduated" | "bonding" | "unknown";
+
 export type ScreenerRow = {
   pool: string;
   feeBps: number;
@@ -31,7 +33,12 @@ export type ScreenerRow = {
   top10Pct?: number;
   transferProbe?: string;
   spark?: number[];
+  /** optional explicit status from indexer */
+  status?: MarketStatus | string;
+  protocol?: string;
+  marketStatus?: MarketStatus;
 };
+
 
 export type ScreenerResponse = {
   rows: ScreenerRow[];

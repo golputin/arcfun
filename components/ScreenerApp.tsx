@@ -8,6 +8,8 @@ import { clsx, fmtAge, fmtInt, fmtPct, fmtPrice, fmtUsd, shortAddr } from "@/lib
 import { ARC } from "@/lib/config";
 import { Spark } from "@/components/Spark";
 import { TokenAvatar } from "@/components/TokenAvatar";
+import { StatusBadge } from "@/components/StatusBadge";
+import { resolveMarketStatus, type MarketStatus } from "@/lib/status";
 
 const TABS: { id: TabKey; label: string }[] = [
   { id: "trending", label: "Trending" },
@@ -34,6 +36,7 @@ export function ScreenerApp() {
   const [minLiq, setMinLiq] = useState(0);
   const [minMcap, setMinMcap] = useState(0);
   const [maxMcap, setMaxMcap] = useState(0);
+  const [status, setStatus] = useState<"all" | MarketStatus>("all");
 
   async function load() {
     try {
@@ -57,8 +60,8 @@ export function ScreenerApp() {
 
   const rows = useMemo(() => {
     if (!data?.rows) return [] as ScreenerRow[];
-    return filterSortRows(data.rows, { tab, tf, q, minLiq, minMcap, maxMcap });
-  }, [data, tab, tf, q, minLiq, minMcap, maxMcap]);
+    return filterSortRows(data.rows, { tab, tf, q, minLiq, minMcap, maxMcap, status });
+  }, [data, tab, tf, q, minLiq, minMcap, maxMcap, status]);
 
   const stats = data?.stats;
 
@@ -137,6 +140,32 @@ export function ScreenerApp() {
         </div>
       </div>
 
+
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-[11px] uppercase tracking-wide text-arc-muted">Status</span>
+        {(
+          [
+            ["all", "All"],
+            ["graduated", "Graduated"],
+            ["bonding", "Bonding"],
+            ["unknown", "Unknown"],
+          ] as const
+        ).map(([id, label]) => (
+          <button
+            key={id}
+            onClick={() => setStatus(id)}
+            className={clsx(
+              "rounded-full border px-2.5 py-1 text-xs transition",
+              status === id
+                ? "border-arc-lime/50 bg-arc-lime/15 text-arc-lime"
+                : "border-arc-line text-arc-muted hover:bg-white/5 hover:text-arc-text",
+            )}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
       <div className="grid gap-2 md:grid-cols-4">
         <input
           value={q}
@@ -180,6 +209,7 @@ export function ScreenerApp() {
             <tr className="border-b border-arc-line">
               {[
                 "Token",
+                "Status",
                 "Price",
                 "5M",
                 "1H",
@@ -262,6 +292,9 @@ export function ScreenerApp() {
                       </div>
                     </div>
                   </td>
+                  <td className="px-3 py-3" onClick={(e) => e.stopPropagation()}>
+                    <StatusBadge status={resolveMarketStatus(r)} compact />
+                  </td>
                   <td className="px-3 py-3 font-mono">{fmtPrice(r.priceUsd)}</td>
                   {(["m5", "h1", "h6", "h24"] as const).map((k) => {
                     const chg = w[k]?.chg;
@@ -300,7 +333,7 @@ export function ScreenerApp() {
             })}
             {!loading && rows.length === 0 && (
               <tr>
-                <td colSpan={15} className="px-3 py-10 text-center text-arc-muted">
+                <td colSpan={16} className="px-3 py-10 text-center text-arc-muted">
                   No pairs match filters.
                 </td>
               </tr>

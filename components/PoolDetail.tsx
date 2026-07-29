@@ -6,6 +6,8 @@ import { ARC } from "@/lib/config";
 import { clsx, fmtInt, fmtPct, fmtPrice, fmtUsd, shortAddr } from "@/lib/format";
 import { Spark } from "@/components/Spark";
 import { TokenAvatar } from "@/components/TokenAvatar";
+import { StatusBadge } from "@/components/StatusBadge";
+import { resolveMarketStatus } from "@/lib/status";
 
 type Trade = {
   ts: number;
@@ -116,6 +118,20 @@ export function PoolDetail({ address }: { address: string }) {
                 </span>
               )}
             </h1>
+            <StatusBadge
+              status={resolveMarketStatus({
+                pool: address,
+                feeBps: pool?.feeBps ?? stats?.feeBps ?? 0,
+                createdTs: stats?.createdTs || 0,
+                base: base || { address: "", symbol: "" },
+                quote: quote || { address: "", symbol: "USDC" },
+                priceUsd: stats?.priceUsd || 0,
+                mcapUsd: stats?.mcapUsd || 0,
+                liquidityUsd: stats?.liquidityUsd || 0,
+                windows: stats?.windows || {},
+                protocol: pool?.protocol || "v3",
+              })}
+            />
           </div>
           <p className="mt-1 text-sm text-arc-muted">
             {base?.name || "Token"} · pool{" "}
@@ -246,6 +262,25 @@ export function PoolDetail({ address }: { address: string }) {
         <div className="rounded-xl border border-arc-line bg-arc-panel/70 p-4">
           <div className="text-sm font-medium mb-3">Pool info</div>
           <dl className="space-y-2 text-sm">
+            <div className="flex justify-between gap-3">
+              <dt className="text-arc-muted">Status</dt>
+              <dd>
+                <StatusBadge
+                  status={resolveMarketStatus({
+                    pool: address,
+                    feeBps: pool?.feeBps ?? 0,
+                    createdTs: 0,
+                    base: base || { address: "", symbol: "" },
+                    quote: quote || { address: "", symbol: "USDC" },
+                    priceUsd: 0,
+                    mcapUsd: 0,
+                    liquidityUsd: stats?.liquidityUsd || 0,
+                    windows: {},
+                    protocol: pool?.protocol || "v3",
+                  })}
+                />
+              </dd>
+            </div>
             <div className="flex justify-between gap-3">
               <dt className="text-arc-muted">Protocol</dt>
               <dd className="font-mono">{pool?.protocol || "v3"}</dd>

@@ -1,5 +1,6 @@
 import { ARC } from "@/lib/config";
 import type { ScreenerResponse, ScreenerRow } from "@/lib/types";
+import { resolveMarketStatus, type MarketStatus } from "@/lib/status";
 
 async function rpc<T = unknown>(method: string, params: unknown[] = []): Promise<T> {
   const res = await fetch(ARC.rpcUrl, {
@@ -124,6 +125,12 @@ export async function loadScreener(): Promise<ScreenerResponse> {
     }
   }
 
+  rows = rows.map((r) => ({
+    ...r,
+    protocol: (r as any).protocol || "v3",
+    marketStatus: resolveMarketStatus({ ...r, protocol: (r as any).protocol || "v3" }),
+  }));
+
   return {
     rows,
     lastBlock,
@@ -139,6 +146,7 @@ export async function loadScreener(): Promise<ScreenerResponse> {
 }
 
 export type TabKey = "trending" | "top" | "gainers" | "new";
+export type StatusFilter = "all" | MarketStatus;
 
 export function filterSortRows(
   rows: ScreenerRow[],
@@ -149,6 +157,7 @@ export function filterSortRows(
     minLiq: number;
     minMcap: number;
     maxMcap: number;
+    status?: StatusFilter;
   },
 ): ScreenerRow[] {
   const q = opts.q.trim().toLowerCase();
@@ -156,6 +165,9 @@ export function filterSortRows(
     if ((r.liquidityUsd || 0) < opts.minLiq) return false;
     if ((r.mcapUsd || 0) < opts.minMcap) return false;
     if (opts.maxMcap > 0 && (r.mcapUsd || 0) > opts.maxMcap) return false;
+    if (opts.status && opts.status !== "all") {
+      if (resolveMarketStatus(r) !== opts.status) return false;
+    }
     if (!q) return true;
     const hay = `${r.base.symbol} ${r.base.name || ""} ${r.base.address} ${r.pool}`.toLowerCase();
     return hay.includes(q);

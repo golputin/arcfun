@@ -18,6 +18,7 @@ Configured in [`lib/config.ts`](./lib/config.ts).
 
 - Stats bar: pairs, combined liquidity, 24h volume, swaps, last block
 - Tabs: **Trending · Top · Gainers · New pairs**
+- Status badge: **Graduated / Bonding / Unknown** (V3 DEX pools = graduated; bonding when curve indexer wired)
 - Timeframes: **5M · 1H · 6H · 24H**
 - Search + min liquidity / min-max mcap filters
 - Table: price, % changes, vol, liq, mcap, txns, traders, holders, top10, age, sparkline
